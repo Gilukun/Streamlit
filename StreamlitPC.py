@@ -23,20 +23,27 @@ import plotly.express as px
 import re
 
 import folium
+from streamlit_folium import folium_static
 
 import openrouteservice 
 from openrouteservice import client
 
-df = pd.read_csv('datatourisme.POI_OK_20210921.PACA.csv')
-centroid = pd.read_csv('CentroidFrance.csv')
-st
+df= pd.read_csv('datatourisme.POI_OK_20210921.PACA.csv')
+centroid= pd.read_csv('CentroidFrance.csv')
 
-header = st.container()
+intro = st.container()
 
-with header:
+with intro:
     st.title("Pytinéo")
     st.text('Pytinéo le renouveau de la création d intinéraire')
-    
+
+analysis = st.container()
+
+with analysis:
+    st.header("Analyse de données")
+    st.write('Analyse des datasets pour définir notre projet')
+    st.dataframe(data=df.head(10))
+
 PACA_theme_count = df['Thématique_POI'].value_counts()
 
 plotlypie_theme = px.pie(PACA_theme_count, 
@@ -47,52 +54,35 @@ plotlypie_theme = px.pie(PACA_theme_count,
 plotlypie_theme.update_traces(textposition='outside', textinfo='percent')
 
 st.plotly_chart(plotlypie_theme)
+st.caption('Répartition des POIs du DataSet')
 
 
-commune = df['Nom_commune']
+commune = df['Nom_commune'].drop_duplicates()
 choix_commune = st.sidebar.selectbox('Selectionnez votre commune:', commune)
-theme = df["Thématique_POI"]
+
+theme = df["Thématique_POI"].drop_duplicates()
 choix_theme = st.sidebar.selectbox('Sélectionnez votr type d itinéraire', theme) 
 
 
 
-page = st.radio("Radio box", ["Arles", "Marseille"], index=0)
-
-if page == "Arles":
-    Arles = df.loc[df['Nom_commune']=="Arles"].head(10)
-    coords = Arles[['Longitude', 'Latitude']].values.tolist()[:10]
-    client = openrouteservice.Client(key='5b3ce3597851110001cf62489585426c1497421aa8b3c7a5d4c5c5f0')
-    routes = client.directions(coords)
-    route = client.directions(coordinates = coords,
-                         profile = 'cycling-road',  # [“driving-car”, “driving-hgv”, “foot-walking”, “foot-hiking”, “cycling-regular”, “cycling-road”,”cycling-mountain”, “cycling-electric”,]. Default “driving-car”.
-                         format ='geojson')
-
-    maps = folium.Map(location=[43.677795, 4.628619], tiles='cartodbpositron', zoom_start=9)
-
-    for index, row in Arles.iterrows():
-        folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI'], icon=folium.Icon(color='lightgray', icon='fire', prefix='fa')).add_to(maps)
-
-    folium.GeoJson(route, name='test').add_to(maps)
-
-    maps
-    
-elif page == "Marseille":
-    Arles = df.loc[df['Nom_commune']=="Marseille"].head(10)
-    coords = Arles[['Longitude', 'Latitude']].values.tolist()[:10]
-
-
-    client = openrouteservice.Client(key='5b3ce3597851110001cf62489585426c1497421aa8b3c7a5d4c5c5f0') # Specify your personal API key
-    routes = client.directions(coords)
-
-    route = client.directions(coordinates = coords,
-                         profile = 'cycling-road',  # [“driving-car”, “driving-hgv”, “foot-walking”, “foot-hiking”, “cycling-regular”, “cycling-road”,”cycling-mountain”, “cycling-electric”,]. Default “driving-car”.
-                         format ='geojson')
-
-    maps = folium.Map(location=[43.300000, 5.400000], tiles='cartodbpositron', zoom_start=9)
-
-    for index, row in Arles.iterrows():
-        folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI'], icon=folium.Icon(color='lightgray', icon='fire', prefix='fa')).add_to(maps)
-
-    folium.GeoJson(route, name='test').add_to(maps)
-
-    maps                      
+cartes = st.container()
+with cartes:
+    st.header('Carte des Points d intêtets selon la commune et le thème choisi')
+    def intineraire (choix_commune,choix_theme):
+        for i,value in enumerate (centroid['nom_com']):
+          if choix_commune == value:
+            com = centroid[centroid['nom_com'] == value]
+        for i,value in enumerate (df['Nom_commune']):
+            if choix_commune == value:
+                df_com = df [df['Nom_commune'] == value]
+        for i,value in enumerate (df_com['Thématique_POI']):
+                if choix_theme == value:
+                    theme = df_com [df_com['Thématique_POI'] == value]
+        #Création de la carte
+        for index, row in com.iterrows():
+          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=13.5)
+        for index, row in theme.iterrows():
+            folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI']).add_to(maps)
+        return maps
+                    
+st.write(intineraire (choix_commune, choix_theme))
