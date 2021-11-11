@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import numpy as np
 
-import folium
 from streamlit_folium import folium_static
 
 import openrouteservice 
