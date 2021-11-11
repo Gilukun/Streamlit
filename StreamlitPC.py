@@ -12,11 +12,6 @@ import numpy as np
 import pandas as pd
 import numpy as np
 
-from streamlit_folium import folium_static
-
-import openrouteservice 
-from openrouteservice import client
-
 df= pd.read_csv('datatourisme.POI_OK_20210921.PACA.csv')
 centroid= pd.read_csv('CentroidFrance.csv')
 
