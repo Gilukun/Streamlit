@@ -9,8 +9,6 @@ Created on Thu Nov 11 17:27:47 2021
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pandas as pd
-import numpy as np
 
 from plotly.subplots import make_subplots
 import plotly.express as px
@@ -75,7 +73,7 @@ with cartes:
                     theme = df_com [df_com['Thématique_POI'] == value]
         #Création de la carte
         for index, row in com.iterrows():
-          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=13.5)
+          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=10)
         for index, row in theme.iterrows():
             folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI']).add_to(maps)
         return folium_static(maps)
