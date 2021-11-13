@@ -86,12 +86,20 @@ with cartes:
         for i,value in enumerate (centroid['nom_com']):
           if choix_commune == value:
             com = centroid[centroid['nom_com'] == value]
+          
         for i,value in enumerate (df['Nom_commune']):
             if choix_commune == value:
                 df_com = df [df['Nom_commune'] == value]
+            if choix_commune not in (df['Nom_commune'].values):
+                st.write ("Cette commune n'est pas listée dans notre base de données")
+                return  
+            
         for i,value in enumerate (df_com['Thématique_POI']):
                 if choix_theme == value:
                     theme = df_com [df_com['Thématique_POI'] == value]
+                if choix_theme not in (df_com['Thématique_POI'].values):
+                    st.write ("Ce thème n'est listé dans notre base de données pour cette commune")
+                    return
         #Création de la carte
         for index, row in com.iterrows():
           maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=13.5)
