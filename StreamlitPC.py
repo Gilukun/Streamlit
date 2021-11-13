@@ -10,7 +10,7 @@ Created on Thu Nov 11 17:27:47 2021
 #créer le fichier requirements.txt = d'abord aller dans le dossier du streamlit puis pipreqs ./
 #installer pip install branca
 #installer pip install streamlit_folium
-
+#utiliser obligatoirement les crochets quand on a un accent dans les noms des variables
 
 import streamlit as st
 import pandas as pd
@@ -61,18 +61,22 @@ st.caption('Répartition des POIs du DataSet')
 
 #BAR PLOT
 fig,ax = plt.subplots()
-ax = sns.countplot(x=df.Nom_département,hue=df.Thématique_POI, palette='Set2')
+ax = sns.countplot(x=df['Nom_département'],
+                   hue=df['Thématique_POI'], 
+                   palette='Set2')
 
 plt.title("Répartitions de POI par Départements ")
-ax.legend(bbox_to_anchor = (1, 1), loc = 'upper right', prop = {'size': 10})
-plt.xticks(rotation=60)
+ax.legend(bbox_to_anchor = (1, 1), 
+          loc = 'upper right', 
+          prop = {'size': 10})
+plt.xticks(rotation=45)
 st.pyplot(fig)
 
 #BAR PLOT NB HABITANT
 fig,ax = plt.subplots()
-ax= df_habitant.plot.bar( y = ['Nbre_habitants','Nbre_touristes' ], rot= 30, color= ['wheat', 'salmon'], 
-                     figsize=(12,8),label=['Nbre_habitants (en million)','Nbre_touristes(en million)']);
-plt.title('Repartition Habitant/Touriste par Departement');
+ax= df_habitant.plot.bar( y = ['Nbre_habitants','Nbre_touristes' ], 
+                         rot= 30, color= ['wheat', 'salmon'],
+                         label=['Nbre_habitants (en million)','Nbre_touristes(en million)'])
 st.pyplot(fig)
 
 #DROP DOWN MENU
