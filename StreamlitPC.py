@@ -6,13 +6,19 @@ Created on Thu Nov 11 17:27:47 2021
 """
 # -*- coding: utf-8 -*-
 
+#installation utile : pip install pipreqs pour le fichier requirements
+#créer le fichier requirements.txt = d'abord aller dans le dossier du streamlit puis pipreqs ./
+#installer pip install branca
+#installer pip install streamlit_folium
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 
-import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
 import plotly.express as px
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 import folium
@@ -21,13 +27,10 @@ from streamlit_folium import folium_static
 import openrouteservice 
 from openrouteservice import client
 
-#Avant de lancer Streamlit installer : 
-
-#Import et création des datasets 
-df= pd.read_csv('Data/datatourisme.POI_OK_20210921.PACA.csv')
-centroid= pd.read_csv('Data/CentroidFrance.csv')
-PACA_theme_count = df['Thématique_POI'].value_counts()
-df_habitant= df.groupby(['Nom_département']).agg({'Nbre_habitants' : 'sum','Nbre_touristes' : 'sum' })
+df= pd.read_csv("Data/datatourisme.csv")
+centroid= pd.read_csv("Data/CentroidFrance.csv")
+df_habitant = df.groupby(['Nom_département']).agg({'Nbre_habitants' : 'sum','Nbre_touristes' : 'sum' })
+df[['Nbre_habitants','Nbre_touristes' ]] = df[['Nbre_habitants','Nbre_touristes' ]].astype(int)
 
 intro = st.container()
 
@@ -42,32 +45,44 @@ with analysis:
     st.write('Analyse des datasets pour définir notre projet')
     st.dataframe(data=df.head(10))
 
-
-st.subheader('Répartition des POI')
-pie= px.pie(PACA_theme_count, 
-        values=PACA_theme_count, 
-        names=PACA_theme_count.index,
-        title="Répartition des thèmes de POI")
-st.plotly_chart(pie)
-
-st.subheader('Répartition des POIs par départements')
-fig2, ax = plt.subplots()
-ax = sns.countplot(x=df.Nom_département,
-                   hue=df.Thématique_POI, 
-                   palette='Set2')
-ax.legend(loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5))
-st.pyplot(fig2)
-        
+PACA_theme_count = df['Thématique_POI'].value_counts()
 
 
+#PIE PLOT
+plotlypie_theme = px.pie(PACA_theme_count, 
+                         values=PACA_theme_count, 
+                         names=PACA_theme_count.index, 
+                         title="Répartition des thèmes de POI")
+
+plotlypie_theme.update_traces(textposition='outside', textinfo='percent')
+
+st.plotly_chart(plotlypie_theme)
+st.caption('Répartition des POIs du DataSet')
+
+#BAR PLOT
+fig,ax = plt.subplots()
+ax = sns.countplot(x=df.Nom_département,hue=df.Thématique_POI, palette='Set2')
+
+plt.title("Répartitions de POI par Départements ")
+ax.legend(bbox_to_anchor = (1, 1), loc = 'upper right', prop = {'size': 10})
+plt.xticks(rotation=60)
+st.pyplot(fig)
+
+#BAR PLOT NB HABITANT
+fig,ax = plt.subplots()
+ax= df_habitant.plot.bar( y = ['Nbre_habitants','Nbre_touristes' ], rot= 30, color= ['wheat', 'salmon'], 
+                     figsize=(12,8),label=['Nbre_habitants (en million)','Nbre_touristes(en million)']);
+plt.title('Repartition Habitant/Touriste par Departement');
+st.pyplot(fig)
+
+#DROP DOWN MENU
 commune = df['Nom_commune'].drop_duplicates()
 choix_commune = st.sidebar.selectbox('Selectionnez votre commune:', commune)
 
 theme = df["Thématique_POI"].drop_duplicates()
 choix_theme = st.sidebar.selectbox('Sélectionnez votr type d itinéraire', theme) 
 
-
-
+#AFFICHAGE DE LA CARTE
 cartes = st.container()
 with cartes:
     st.header('Carte des Points d intêtets selon la commune et le thème choisi')
@@ -83,10 +98,9 @@ with cartes:
                     theme = df_com [df_com['Thématique_POI'] == value]
         #Création de la carte
         for index, row in com.iterrows():
-          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=10)
+          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=13.5)
         for index, row in theme.iterrows():
             folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI']).add_to(maps)
-        folium_static(maps)
-        
-st.write(intineraire(choix_commune, choix_theme))
-            
+        return maps
+                    
+st.write(intineraire (choix_commune, choix_theme))
