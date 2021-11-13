@@ -76,6 +76,7 @@ with cartes:
           maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=10)
         for index, row in theme.iterrows():
             folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI']).add_to(maps)
-        return folium_static(maps)
-                    
-st.write(intineraire (choix_commune, choix_theme))
+        folium_static(maps)
+        
+st.write(intineraire(choix_commune, choix_theme))
+            
