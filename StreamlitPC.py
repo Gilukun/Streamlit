@@ -30,7 +30,6 @@ from openrouteservice import client
 df= pd.read_csv("Data/datatourisme.POI_OK_20210921.PACA.csv")
 centroid= pd.read_csv("Data/CentroidFrance.csv")
 df_habitant = df.groupby(['Nom_département']).agg({'Nbre_habitants' : 'sum','Nbre_touristes' : 'sum' })
-df[['Nbre_habitants','Nbre_touristes' ]] = df[['Nbre_habitants','Nbre_touristes' ]].astype(int)
 
 intro = st.container()
 
