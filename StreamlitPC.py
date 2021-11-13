@@ -71,13 +71,6 @@ ax.legend(bbox_to_anchor = (1, 1),
 plt.xticks(rotation=45)
 st.pyplot(fig)
 
-#BAR PLOT NB HABITANT
-fig,ax = plt.subplots()
-ax= df_habitant.plot.bar( y = ['Nbre_habitants','Nbre_touristes' ], 
-                         rot= 30, color= ['wheat', 'salmon'],
-                         label=['Nbre_habitants (en million)','Nbre_touristes(en million)'])
-st.pyplot(fig)
-
 #DROP DOWN MENU
 commune = df['Nom_commune'].drop_duplicates()
 choix_commune = st.sidebar.selectbox('Selectionnez votre commune:', commune)
