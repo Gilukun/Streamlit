@@ -6,11 +6,20 @@ Created on Thu Nov 11 17:27:47 2021
 """
 # -*- coding: utf-8 -*-
 
-#installation utile : pip install pipreqs pour le fichier requirements
-#créer le fichier requirements.txt = d'abord aller dans le dossier du streamlit puis pipreqs ./
-#installer pip install branca
-#installer pip install streamlit_folium
+#installation utile : pip install pipreqs pour le fichier requirements (fichier obligatoire publier l'appli sur Streamlit)
+
+#créer le fichier requirements.txt 
+#1. Ouvrir une fenêtre CMD Prompt puis aller dans le dossier du cd /streamlit 
+#2.taper:  pipreqs ./
+#3. Le fichier sera créé dans le dossier streamlit
+
+#installer pip install branca==0.3.1  pour eviter les soucis d'affichage avec Folium
+#installer pip install streamlit_folium pour l'integration de Folium
+
 #utiliser obligatoirement les crochets quand on a un accent dans les noms des variables
+
+#pour lire le fichier py = cd Documents/OneDrive/DataScientest/Data  ensuite streamlit run StreamlitPC.py
+
 
 import streamlit as st
 import pandas as pd
@@ -27,9 +36,12 @@ from streamlit_folium import folium_static
 import openrouteservice 
 from openrouteservice import client
 
-df= pd.read_csv("Data/datatourisme.POI_OK_20210921.PACA.csv")
+from sklearn.cluster import KMeans
+
+df= pd.read_csv("Data/datatourisme.csv")
 centroid= pd.read_csv("Data/CentroidFrance.csv")
 df_habitant = df.groupby(['Nom_département']).agg({'Nbre_habitants' : 'sum','Nbre_touristes' : 'sum' })
+df[['Nbre_habitants','Nbre_touristes' ]] = df[['Nbre_habitants','Nbre_touristes' ]].astype(int)
 
 intro = st.container()
 
@@ -81,7 +93,7 @@ choix_theme = st.sidebar.selectbox('Sélectionnez votr type d itinéraire', them
 #AFFICHAGE DE LA CARTE
 cartes = st.container()
 with cartes:
-    st.header('Carte des Points d intêtets selon la commune et le thème choisi')
+    st.header('Carte des Points d intêrets selon la commune et le thème choisi')
     def intineraire (choix_commune,choix_theme):
         for i,value in enumerate (centroid['nom_com']):
           if choix_commune == value:
@@ -100,11 +112,29 @@ with cartes:
                 if choix_theme not in (df_com['Thématique_POI'].values):
                     st.write ("Ce thème n'est listé dans notre base de données pour cette commune")
                     return
+   #création des clusters en utilisant le KMeans
+    #On a une randomisation des résultats naturellement avec le KMeans
+        X= theme[['Latitude', 'Longitude']]
+        k = round((theme[['Latitude', 'Longitude']].shape[0])/5)
+        kmeans = KMeans(k)
+        kmeans.fit(X)
+        clusters = kmeans.predict(X)
+        theme['Clusters'] = clusters
+        random = list(theme['Clusters'].sample(n=7, random_state=1).values) #On choisi un n= nombre de jour pour avoir un cluster par jour
+        theme = theme.loc[theme['Clusters'].isin(random)]
+    
         #Création de la carte
         for index, row in com.iterrows():
-          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=13.5)
-        for index, row in theme.iterrows():
-            folium.Marker(location=[row.loc['Latitude'], row.loc['Longitude']], tooltip= row.loc['Nom_du_POI']).add_to(maps)
+          maps= folium.Map(location=[row.loc['latitude'], row.loc['longitude']], tiles='cartodbpositron', zoom_start=10)
+          color_list= ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple','whitpink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
+          clusters_id = list(theme["Clusters"].unique())
+          color_dic = dict(zip (clusters_id, color_list))
+          theme['Couleur']= theme['Clusters'].map(color_dic)
+          
+        for i in theme.itertuples(): 
+           folium.Marker(location=[i.Latitude, i.Longitude], 
+                         tooltip= i.Nom_du_POI,
+                         icon=folium.Icon(icon='bicycle', prefix="fa", color = i.Couleur)).add_to(maps)
         return maps
                     
 st.write(intineraire (choix_commune, choix_theme))
